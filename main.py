@@ -8,8 +8,8 @@ BACKGROUND_COLOR = (92, 25, 62)
 
 class Apple:
     def __init__(self, parent_screen):
-        self.image = pygame.image.load("resources/apple.jpg").convert()
         self.parent_screen = parent_screen
+        self.image = pygame.image.load("resources/apple.jpg").convert()
         self.x = SIZE * 3
         self.y = SIZE * 3
 
@@ -22,12 +22,13 @@ class Apple:
         self.y = random.randint(1, 19) * SIZE
 
 class Snake:
-    def __init__(self, parent_screen, length):
-        self.length = length
+    def __init__(self, parent_screen):
         self.parent_screen = parent_screen
         self.block = pygame.image.load("resources/block.jpg").convert()
-        self.x = [SIZE] * length
-        self.y = [SIZE] * length
+
+        self.length = 1
+        self.x = [SIZE] * self.length
+        self.y = [SIZE] * self.length
         self.direction = 'down'
 
     def increase_length(self):
@@ -84,15 +85,33 @@ class Snake:
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.display.set_caption("Snake v1.0")
+
+        pygame.mixer.init()
+        self.play_background_music()
+
         self.surface = pygame.display.set_mode((1000, 800))
         self.surface.fill((92, 25, 62))
-        self.snake = Snake(self.surface, 1)
+        self.snake = Snake(self.surface)
         self.snake.draw()
         self.apple = Apple(self.surface)
         self.apple.draw()
 
+    def play_background_music(self):
+
+        pygame.mixer.music.load("resources/output.ogg")
+        pygame.mixer.music.play()
+
+    def play_sound(self, sound_name):
+        if sound_name == 'ding':
+            sound = pygame.mixer.Sound('resources/ding.ogg')
+        elif sound_name == 'crash':
+            sound = pygame.mixer.Sound('resources/crash.ogg')
+
+        pygame.mixer.Sound.play(sound)
+
     def reset(self):
-        self.snake = Snake(self.surface, 1)
+        self.snake = Snake(self.surface)
         self.apple = Apple(self.surface)
 
     def collision(self, x_snake, y_snake, x_apple, y_apple):
@@ -109,13 +128,14 @@ class Game:
 
         # snake collidning with apple
         if self.collision(self.snake.x[0], self.snake.y[0], self.apple.x, self.apple.y):
-            #print("collision occurred")
             self.snake.increase_length()
+            self.play_sound('ding')
             self.apple.move()
 
         # snake colliding with itself
-        for i in range(1, self.snake.length):
+        for i in range(3, self.snake.length):
             if self.collision(self.snake.x[0], self.snake.y[0], self.snake.x[i], self.snake.y[i]):
+                self.play_sound('crash')
                 raise "Collision Occured"
 
     def show_game_over(self):
@@ -163,7 +183,7 @@ class Game:
                 pause = True
                 self.reset()
             #self.play( )
-            time.sleep(.3)
+            time.sleep(.25)
 
 if __name__ == "__main__":
     game = Game()
